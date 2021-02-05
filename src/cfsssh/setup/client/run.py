@@ -1,5 +1,5 @@
 '''
-# Copyright 2020 Hewlett Packard Enterprise Development LP
+# Copyright 2020-2021 Hewlett Packard Enterprise Development LP
 
 The purpose of this package is to bootstrap a trust relationship to the
 service half of the cfs-trust domain. In order for trust to be established, a
