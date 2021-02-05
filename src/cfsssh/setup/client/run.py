@@ -18,6 +18,9 @@ import sys
 import os
 import time
 
+from requests.exceptions import RequestException, ConnectionError
+from json.decoder import JSONDecodeError
+
 from cfsssh.cloudinit.bss import get_global_metadata_key
 from cfsssh.setup.client.values import CERTIFICATE_PATH
 from cfsssh.sshd import SSHD_CONFIG_PATH, reload
@@ -40,10 +43,13 @@ def write_certificate():
     """
     raw_certificate = None
     sleep_time = 0
+    max_sleep = 10
     while not raw_certificate:
+        if sleep_time >= max_sleep:
+            sleep_time = max_sleep
         try:
             raw_certificate = get_global_metadata_key(VAULT_GLOBAL_KEY)
-        except KeyError:
+        except (KeyError, RequestException, ConnectionError, JSONDecodeError):
             LOGGER.info("Waiting for metadata service certificate.")
             if sleep_time != MAX_SLEEP_TIME:
                 sleep_time += 1
