@@ -18,11 +18,10 @@ import sys
 import os
 import time
 
-from cfsssh.cloudinit.bss import get_global_metadata_key, BSSException
 from requests.exceptions import RequestException, ConnectionError
 from json.decoder import JSONDecodeError
 
-from cfsssh.cloudinit.bss import get_global_metadata_key
+from cfsssh.cloudinit.bss import get_global_metadata_key, BSSException
 from cfsssh.setup.client.values import CERTIFICATE_PATH
 from cfsssh.sshd import SSHD_CONFIG_PATH, reload
 from cfsssh.setup.service.values import VAULT_GLOBAL_KEY
