@@ -1,5 +1,5 @@
 '''
-# Copyright 2020 Hewlett Packard Enterprise Development LP
+# Copyright 2020-2021 Hewlett Packard Enterprise Development LP
 
 The purpose of this package is to bootstrap a trust relationship to the
 service half of the cfs-trust domain. In order for trust to be established, a
@@ -21,7 +21,7 @@ import time
 from requests.exceptions import RequestException, ConnectionError
 from json.decoder import JSONDecodeError
 
-from cfsssh.cloudinit.bss import get_global_metadata_key
+from cfsssh.cloudinit.bss import get_global_metadata_key, BSSException
 from cfsssh.setup.client.values import CERTIFICATE_PATH
 from cfsssh.sshd import SSHD_CONFIG_PATH, reload
 from cfsssh.setup.service.values import VAULT_GLOBAL_KEY
@@ -49,7 +49,7 @@ def write_certificate():
             sleep_time = max_sleep
         try:
             raw_certificate = get_global_metadata_key(VAULT_GLOBAL_KEY)
-        except (KeyError, RequestException, ConnectionError, JSONDecodeError):
+        except (BSSException, KeyError, RequestException, ConnectionError, JSONDecodeError):
             LOGGER.info("Waiting for metadata service certificate.")
             if sleep_time != MAX_SLEEP_TIME:
                 sleep_time += 1
