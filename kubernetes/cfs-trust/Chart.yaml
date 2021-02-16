@@ -2,4 +2,4 @@ apiVersion: v1
 description: "Kubernetes resources for cfs trust"
 name: "cfs-trust"
 home: "scms/cfs-trust"
-version: 1.0.6
+version: 1.0.7
