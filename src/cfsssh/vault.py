@@ -275,6 +275,7 @@ class VaultSshKey(object):
         """
         The public half of this key.
         """
+        private_key_path = None
         try:
             private_key_path = self.export_private_key()
             proc = subprocess.Popen(['ssh-keygen', '-y', '-f', private_key_path], stdout=subprocess.PIPE,
@@ -282,7 +283,7 @@ class VaultSshKey(object):
             out, _ = proc.communicate()
             return out.decode('utf-8')
         finally:
-            if os.path.exists(private_key_path):
+            if private_key_path and os.path.exists(private_key_path):
                 os.unlink(private_key_path)
 
     def export_public_key(self, destination=None):
