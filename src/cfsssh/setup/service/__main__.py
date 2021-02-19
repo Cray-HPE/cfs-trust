@@ -22,6 +22,7 @@ import base64
 from kubernetes import client, config
 from kubernetes.config.config_exception import ConfigException
 from kubernetes.client.rest import ApiException
+from requests.exceptions import HTTPError
 
 from cfsssh.cloudinit.bss import put_global_metadata_key, get_global_metadata_key, BSSException
 from cfsssh.kubernetes import KubeToken
@@ -103,10 +104,19 @@ def run():
     LOGGER.info("Signing CFS Keypair for authentication.")
     while True:
         LOGGER.info("Signing new certificate...")
-        ssh_pubkey_cert = SshPublicKeyCert(vssh, sk, 'compute', vc,
-                                           ttl='12h')
-        metadata = {'name': CFS_SIGNED_KEY_NAME, 'namespace': K8S_NAMESPACE}
-        data = {CFS_SIGNED_KEY_NAME_KEY: base64.b64encode(ssh_pubkey_cert.signed_key.strip().encode('utf-8')).decode('utf-8')}
+        try:
+            ssh_pubkey_cert = SshPublicKeyCert(vssh, sk, 'compute', vc,
+                                               ttl='12h')
+            metadata = {'name': CFS_SIGNED_KEY_NAME, 'namespace': K8S_NAMESPACE}
+            data = {CFS_SIGNED_KEY_NAME_KEY: base64.b64encode(ssh_pubkey_cert.signed_key.strip().encode('utf-8')).decode('utf-8')}
+        except HTTPError as hpe:
+            # When we get an HTTP Error, it means that our vault login token has expired. We need to resign it and try again soon.
+            LOGGER.info("Vault credentials have expired:\n\t%s\n creating a new login context and retrying.", hpe)
+            vc = VaultClient(kt.value, VAULT_CLIENT_ROLE)
+            sk = SigningKey(vc)
+            vssh = VaultSshKey.CreateOrReference(CFS_KEY_NAME, vault_client=vc)
+            time.sleep(2)
+            continue
         body = client.V1Secret(api_version=api_version, kind='Secret', type='Opaque',
                                metadata=metadata, data=data)
         try:
@@ -116,6 +126,7 @@ def run():
             v1.replace_namespaced_secret(name=CFS_SIGNED_KEY_NAME, namespace=K8S_NAMESPACE, body=body)
         # Wait 6 Hours to refresh our token
         LOGGER.info("Signed secret created; waiting 6 hours to renew.")
+
         Timestamp()
         time.sleep(REFRESH_PERIOD)
 
