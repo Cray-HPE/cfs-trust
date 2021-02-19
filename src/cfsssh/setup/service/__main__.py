@@ -115,6 +115,8 @@ def run():
             vc = VaultClient(kt.value, VAULT_CLIENT_ROLE)
             sk = SigningKey(vc)
             vssh = VaultSshKey.CreateOrReference(CFS_KEY_NAME, vault_client=vc)
+            # A small sleep prevents hitting the same API repeatedly in case the 403 issue is transient with how we're reading
+            # in credentials, or for other non-403 related HTTPErrors.
             time.sleep(2)
             continue
         body = client.V1Secret(api_version=api_version, kind='Secret', type='Opaque',
