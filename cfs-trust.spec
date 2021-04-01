@@ -1,6 +1,6 @@
-# Copyright 2020 Cray Inc., An HPE Company, All Rights Reserved.
+# Copyright 2020-2021 Hewlett Packard Enterprise Development LP
 Name: cfs-trust
-License: Cray Software License Agreement
+License: MIT
 Summary: A CFS library that can be used to bootstrap an environment into the CFS trust relationship
 Group: System/Management
 Version: %(cat .version)
