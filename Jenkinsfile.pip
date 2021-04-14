@@ -7,7 +7,7 @@ pipeline {
             label "cfstrust"
             containerTemplate {
                 name "cfstrust-cont"
-                image "dtr.dev.cray.com/dst/cray-alpine3_build_environment:latest"
+                image "arti.dev.cray.com/internal-docker-master-local/cray-alpine3_build_environment:latest"
                 ttyEnabled true
                 command "cat"
             }
