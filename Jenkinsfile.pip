@@ -32,16 +32,50 @@ pipeline {
     }
 
     stages {
-        stage('Build Package') {
+
+        stage('Install necessary tools') {
             steps {
                 container('cfstrust-cont') {
+                    // Install rpm separately since we are going to remove it
                     sh """
+                        apk add --no-cache --virtual .build-tools rpm
                         apk add --no-cache --virtual .build-deps g++ python3-dev libffi-dev openssl-dev py3-pip curl bash
                         apk add --no-cache --update python3 && \
                         pip3 install --upgrade pip setuptools
                         pip3 install wheel
-                        python3 setup.py sdist bdist_wheel
-                    """             
+                    """
+                }
+            }
+        }
+
+        stage('Build Prep') {
+            steps {
+                container('cfstrust-cont') {
+                    sh "./runBuildPrep.sh"
+                }
+            }
+        }
+
+        stage('Linting') {
+            steps {
+                container('cfstrust-cont') {
+                    sh "./runLint.sh"
+                }
+            }
+        }
+
+        stage('Remove tools needed only for prep and linting') {
+            steps {
+                container('cfstrust-cont') {
+                    sh "apk del .build-tools"
+                }
+            }
+        }
+
+        stage('Build Package') {
+            steps {
+                container('cfstrust-cont') {
+                    sh "python3 setup.py sdist bdist_wheel"
                 }
             }
         }
