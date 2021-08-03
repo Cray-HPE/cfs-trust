@@ -133,10 +133,6 @@ pipeline {
                 }
 
                 stage("Prepare") {
-                    environment {
-                        RPM_VERSION = sh(returnStdout: true, script: "head -1 .version").trim()
-                    }
-            
                     steps {
                         sh "make prepare"
                     }
