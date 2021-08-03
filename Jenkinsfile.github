@@ -1,10 +1,46 @@
 @Library('csm-shared-library') _
 
-pipeline {
-    agent {
-        label "metal-gcp-builder"
+def cloneCmsMetaTools() {
+    withCredentials([gitUsernamePassword(credentialsId: 'jenkins-algol60-cray-hpe-github-integration')]) {
+        sh 'git clone --depth 1 --no-single-branch https://github.com/Cray-HPE/cms-meta-tools.git ./cms_meta_tools'
     }
+}
 
+def setVersions() {
+    script {
+        // Get version from version.py
+        def ver = sh(returnStdout: true, script: "./cms_meta_tools/version.py").trim()
+        echo "Base version is ${ver}"
+                        
+        // Write base version to .version
+        writeFile(file: ".version", text: ver)
+                    
+        // Generate docker version string
+        def dockerver = getDockerBuildVersion(isStable: env.IS_STABLE)
+        echo "Docker version is ${dockerver}"
+                    
+        // Write docker version string to .docker_version
+        writeFile(file: ".docker_version", text: dockerver)
+                    
+        // Generate chart version string
+        def chartver = dockerver.replaceAll("_", "+")
+        echo "Chart version is ${chartver}"
+                    
+        // Write chart version to .chart_version
+        writeFile(file: ".chart_version", text: chartver)
+    }
+}
+
+def runBuildPrep() {
+    sh "make runbuildprep"
+}
+
+def runLint() {
+    sh "make lint"
+}
+
+pipeline {
+    agent none
     options {
         buildDiscarder(logRotator(numToKeepStr: "10"))
         timestamps()
@@ -12,117 +48,133 @@ pipeline {
 
     environment {
         NAME = "cfs-trust"
+        PYTHON_MODULE_NAME = "cfs-ssh-trust"
         DESCRIPTION = "Configuration Framework Service Trust Environment"
         IS_STABLE = getBuildIsStable()
     }
 
     stages {
-        stage("Clone cms_meta_tools repo") {
-            steps {
-                withCredentials([gitUsernamePassword(credentialsId: 'jenkins-algol60-cray-hpe-github-integration')]) {
-                    sh 'git clone --depth 1 --no-single-branch https://github.com/Cray-HPE/cms-meta-tools.git ./cms_meta_tools'
+        stage("Python module") {
+            agent {
+                docker {
+                    label "metal-gcp-builder"
+                    image "arti.dev.cray.com/dstbuildenv-docker-master-local/cray-alpine3_build_environment:latest"
+                    args "-u root"
+                }
+            }
+            stages {
+                stage("Install Necessary Tools") {
+                    steps {
+                        sh """
+                            apk add --no-cache --virtual .build-deps g++ python3-dev libffi-dev openssl-dev py3-pip curl bash make
+                            apk add --no-cache --update python3 && pip3 install --upgrade pip setuptools
+                            pip3 install wheel
+                        """
+                    }
+                }
+
+                stage("Clone cms_meta_tools repo") {
+                    steps { cloneCmsMetaTools() }
+                }
+
+                stage("Set Versions") {
+                    steps { setVersions() }
+                }
+
+                stage("runBuildPrep") {
+                    steps { runBuildPrep() }
+                }
+
+                stage("Lint") {
+                    steps { runLint() }
+                }
+                stage('Build Package') {
+                    steps { sh "make pymod" }
+                }
+                stage('Publish') {
+                    steps {
+                        publishCsmPythonModules(module: env.PYTHON_MODULE_NAME, pattern: "dist/*.tar.gz", isStable: env.IS_STABLE)
+                        publishCsmPythonModules(module: env.PYTHON_MODULE_NAME, pattern: "dist/*.whl", isStable: env.IS_STABLE)
+                    }
                 }
             }
         }
-
-        stage("Set Versions") {
-            steps {
-                script {
-                    // Get version from version.py
-                    def ver = sh(returnStdout: true, script: "./cms_meta_tools/version.py").trim()
-                    echo "Base version is ${ver}"
-                    
-                    // Write base version to .version
-                    writeFile(file: ".version", text: ver)
-                
-                    // Generate docker version string
-                    def dockerver = getDockerBuildVersion(isStable: env.IS_STABLE)
-                    echo "Docker version is ${dockerver}"
-                
-                    // Write docker version string to .docker_version
-                    writeFile(file: ".docker_version", text: dockerver)
-                
-                    // Generate chart version string
-                    def chartver = dockerver.replaceAll("_", "+")
-                    echo "Chart version is ${chartver}"
-                
-                    // Write chart version to .chart_version
-                    writeFile(file: ".chart_version", text: chartver)
+    
+        stage("Chart, Image, and RPM") {
+            agent {
+                label "metal-gcp-builder"
+            }
+            stages {
+                stage("Clone cms_meta_tools repo") {
+                    steps { cloneCmsMetaTools() }
                 }
-            }
-        }
 
-        stage("runBuildPrep") {
-            steps {
-                sh "make runbuildprep"
-            }
-        }
+                stage("Set Versions") {
+                    steps { setVersions() }
+                }
 
-        stage("Lint") {
-            steps {
-                sh "make lint"
-            }
-        }
+                stage("runBuildPrep") {
+                    steps { runBuildPrep() }
+                }
+
+                stage("Lint") {
+                    steps { runLint() }
+                }
         
-        stage("Add RPM Metadata") {
-            environment {
-                BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
-            }
+                stage("Add RPM Metadata") {
+                    environment {
+                        BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
+                    }
 
-            steps {
-                echo "RPM build metadata is ${env.BUILD_METADATA}"
-                runLibraryScript("addRpmMetaData.sh", "")
-            }
-        }
+                    steps {
+                        echo "RPM build metadata is ${env.BUILD_METADATA}"
+                        runLibraryScript("addRpmMetaData.sh", "")
+                    }
+                }
 
-        stage("Prepare") {
-            environment {
-                RPM_VERSION = sh(returnStdout: true, script: "head -1 .version").trim()
-            }
+                stage("Prepare") {
+                    environment {
+                        RPM_VERSION = sh(returnStdout: true, script: "head -1 .version").trim()
+                    }
             
-            steps {
-                sh "make prepare"
-            }
-        }
+                    steps {
+                        sh "make prepare"
+                    }
+                }
 
+                stage("Build") {
+                    parallel {
+                        stage('Image') {
+                            environment {
+                                DOCKER_VERSION = sh(returnStdout: true, script: "head -1 .docker_version").trim()
+                                DOCKER_ARGS = getDockerBuildArgs(name: env.NAME, description: env.DESCRIPTION, version: env.DOCKER_VERSION)
+                            }
 
-        stage("Build") {
-            parallel {
-                stage('Image') {
+                            steps { sh "make image" }
+                        }
+
+                        stage('Chart') {
+                            steps { sh "make chart" }
+                        }
+
+                        stage('Rpm') {
+                            steps { sh "make rpm" }
+                        }
+                    }
+                }
+
+                stage('Publish ') {
                     environment {
                         DOCKER_VERSION = sh(returnStdout: true, script: "head -1 .docker_version").trim()
-                        DOCKER_ARGS = getDockerBuildArgs(name: env.NAME, description: env.DESCRIPTION, version: env.DOCKER_VERSION)
                     }
 
                     steps {
-                        sh "make image"
+                        publishCsmDockerImage(image: env.NAME, tag: env.DOCKER_VERSION, isStable: env.IS_STABLE)
+                        publishCsmHelmCharts(component: env.NAME, chartsPath: "${WORKSPACE}/kubernetes/.packaged", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", arch: "x86_64", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", arch: "src", isStable: env.IS_STABLE)                        
                     }
                 }
-
-                stage('Chart') {
-                    steps {
-                        sh "make chart"
-                    }
-                }
-
-                stage('Rpm') {
-                    steps {
-                        sh "make rpm"
-                    }
-                }
-            }
-        }
-
-        stage('Publish ') {
-            environment {
-                DOCKER_VERSION = sh(returnStdout: true, script: "head -1 .docker_version").trim()
-            }
-
-            steps {
-                publishCsmDockerImage(image: env.NAME, tag: env.DOCKER_VERSION, isStable: env.IS_STABLE)
-                publishCsmHelmCharts(component: env.NAME, chartsPath: "${WORKSPACE}/kubernetes/.packaged", isStable: env.IS_STABLE)
-                publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", arch: "x86_64", isStable: env.IS_STABLE)
-                publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", arch: "src", isStable: env.IS_STABLE)
             }
         }
     }

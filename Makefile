@@ -38,7 +38,7 @@ BUILD_DIR ?= $(PWD)/dist/rpmbuild
 SOURCE_PATH := ${BUILD_DIR}/SOURCES/${SOURCE_NAME}.tar.bz2
 PYTHON_SITE_PACKAGES_PATH ?= $(shell python3 -c 'import site; print(site.getsitepackages()[0])')
 
-all : runbuildprep lint prepare image chart rpm
+all : runbuildprep lint prepare image chart rpm pymod
 chart: chart_setup chart_package chart_test
 rpm: rpm_package_source rpm_build_source rpm_build
 
@@ -76,3 +76,6 @@ rpm_build_source:
 
 rpm_build:
 		BUILD_METADATA=$(BUILD_METADATA) rpmbuild -ba $(SPEC_FILE) --define "_topdir $(BUILD_DIR)" --define "python3_sitelib $(PYTHON_SITE_PACKAGES_PATH)"
+
+pymod:
+		python3 setup.py sdist bdist_wheel
