@@ -162,6 +162,7 @@ pipeline {
                         }
 
                         stage('Rpm') {
+                            environment {BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)}
                             steps { sh "make rpm" }
                         }
                     }
