@@ -95,8 +95,7 @@ pipeline {
                 }
                 stage('Publish') {
                     steps {
-                        publishCsmPythonModules(module: env.PYTHON_MODULE_NAME, pattern: "dist/*.tar.gz", isStable: env.IS_STABLE)
-                        publishCsmPythonModules(module: env.PYTHON_MODULE_NAME, pattern: "dist/*.whl", isStable: env.IS_STABLE)
+                        publishCsmPythonModules(module: env.PYTHON_MODULE_NAME, isStable: env.IS_STABLE)
                     }
                 }
             }
