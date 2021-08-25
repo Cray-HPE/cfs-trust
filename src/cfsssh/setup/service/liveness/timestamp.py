@@ -26,7 +26,6 @@ Created on Dec 15, 2020
 
 @author: jsl
 '''
-
 from datetime import timedelta
 
 from liveness.timestamp import Timestamp as BaseTimestamp

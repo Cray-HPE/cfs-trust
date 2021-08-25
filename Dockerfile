@@ -34,4 +34,5 @@ RUN apk add --no-cache linux-headers gcc g++ python3-dev py3-pip musl-dev libffi
     pip3 install --no-cache-dir -r requirements.txt
 RUN pip3 install --no-cache-dir . && \
     rm -rf /app/*
+USER nobody:nobody
 ENTRYPOINT [ "python3", "-m", "cfsssh.setup.service" ]
