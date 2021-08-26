@@ -49,6 +49,7 @@ lint:
 		./cms_meta_tools/scripts/runLint.sh
 
 prepare:
+		pip3 install --upgrade pip setuptools wheel
 		rm -rf $(BUILD_DIR)
 		mkdir -p $(BUILD_DIR)/SPECS $(BUILD_DIR)/SOURCES
 		cp $(SPEC_FILE) $(BUILD_DIR)/SPECS/

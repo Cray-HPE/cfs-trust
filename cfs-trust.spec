@@ -27,7 +27,7 @@ Version: %(cat .version)
 Release: %(echo ${BUILD_METADATA})
 Source: %{name}-%{version}.tar.bz2
 Vendor: Cray Inc.
-Requires: python3 >= 3.6.5
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 Requires: python3-base
 Requires: python3-requests
 
@@ -35,26 +35,22 @@ Requires: python3-requests
 Provides a library that contains bootstrapping of an environment into
 a trusted relationship with the configuration framework service (CFS).
 
+%{!?python3_sitelib: %define python3_sitelib %(/usr/bin/python3 -c
+"from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+
 %prep
 %setup -q
 
+%build
+/usr/bin/python3 setup.py build
+
 %install
-uname -a
-cat /etc/*release*
-find %{buildroot}/usr/local/lib/python3*/site-packages -type d -print 2>/dev/null > DIR_BEFORE || true
-cat DIR_BEFORE
-python3 setup.py build
-python3 setup.py install --root %{buildroot} --record=PY3_INSTALLED_FILES
-cat PY3_INSTALLED_FILES | xargs dirname | sort -u > DIR_AFTER
-cat PY3_INSTALLED_FILES
-cat DIR_AFTER
+rm -rf $RPM_BUILD_ROOT
+/usr/bin/python3 setup.py install -O1 --skip-build --root $RPM_BUILD_ROOT
 
 %clean
-sed 's#^#%{buildroot}#' DIR_AFTER | while read X ; do
-    [ -d "$X" ] || continue
-    grep -q "^$X$" DIR_BEFORE && continue
-    rm -rf "$X"
-done
+rm -rf $RPM_BUILD_ROOT
 
-%files -f PY3_INSTALLED_FILES
+%files
 %defattr(-,root,root)
+%{python3_sitelib}/*
