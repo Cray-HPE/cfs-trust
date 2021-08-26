@@ -46,6 +46,7 @@ cat PY3_INSTALLED_FILES | grep __pycache__ | xargs dirname | xargs dirname > DIR
 cat PY3_INSTALLED_FILES DIR_INSTALLED_FILES | sort -u > INSTALLED_FILES
 cat PY3_INSTALLED_FILES
 cat DIR_INSTALLED_FILES
+cat INSTALLED_FILES
 
 %clean
 rm -rf  %{buildroot}/usr/lib/python3*/site-packages/cfs-ssh-trust*
