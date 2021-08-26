@@ -27,16 +27,12 @@ Version: %(cat .version)
 Release: %(echo ${BUILD_METADATA})
 Source: %{name}-%{version}.tar.bz2
 Vendor: Cray Inc.
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 Requires: python3-base
 Requires: python3-requests
 
 %description
 Provides a library that contains bootstrapping of an environment into
 a trusted relationship with the configuration framework service (CFS).
-
-%{!?python3_sitelib: %define python3_sitelib %(/usr/bin/python3 -c
-"from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 %prep
 %setup -q
@@ -53,4 +49,3 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%{python3_sitelib}/*
