@@ -48,7 +48,7 @@ setuptools.setup(
     packages = list(package_dir.keys()),
     keywords="vault ssh cfs kubernetes trust certificates",
     classifiers=(
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.6",
         "License :: Other/Proprietary License",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: System :: Systems Administration",
