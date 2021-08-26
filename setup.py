@@ -25,8 +25,7 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read().strip()
 
-with open(".version", "r") as fh:
-    version_str = fh.read().strip()
+version_str = "@VERSION@"
 
 package_dir = {'cfsssh':                        'src/cfsssh',
                'cfsssh.cloudinit':              'src/cfsssh/cloudinit',
@@ -43,7 +42,7 @@ setuptools.setup(
     description="CFS Trust Setup",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://stash.us.cray.com/projects/SCMS/repos/cfs-trust/browse",
+    url="https://github.com/Cray-HPE/cfs-trust",
     package_dir = package_dir,
     packages = list(package_dir.keys()),
     keywords="vault ssh cfs kubernetes trust certificates",
