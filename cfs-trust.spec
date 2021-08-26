@@ -40,6 +40,7 @@ a trusted relationship with the configuration framework service (CFS).
 
 %install
 uname -a
+cat /etc/*release*
 python3 setup.py build
 python3 setup.py install --root %{buildroot} --record=PY3_INSTALLED_FILES
 cat PY3_INSTALLED_FILES | grep __pycache__ | xargs dirname | xargs dirname > DIR_INSTALLED_FILES
