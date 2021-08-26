@@ -41,11 +41,11 @@ a trusted relationship with the configuration framework service (CFS).
 %install
 #python3 setup.py build
 python3 setup.py install --root %{buildroot} --record=PY3_INSTALLED_FILES
-cat PY3_INSTALLED_FILES | grep __pycache__ | xargs dirname | xargs dirname | uniq >> PY3_INSTALLED_FILES
+cat PY3_INSTALLED_FILES | grep __pycache__ | xargs dirname | xargs dirname | uniq > PY3_INSTALLED_FILES
 cat PY3_INSTALLED_FILES
 
 %clean
-rm -rf  %{buildroot}/usr/lib/python*/site-packages/cfs-ssh-trust*
+cat PY3_INSTALLED_FILES | xargs rm -f 
 
 %files -f PY3_INSTALLED_FILES
 %defattr(-,root,root)
