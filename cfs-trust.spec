@@ -41,7 +41,7 @@ a trusted relationship with the configuration framework service (CFS).
 %install
 uname -a
 cat /etc/*release*
-find %{buildroot}/usr/local/lib/python3*/site-packages -mindepth 1 -type d -print 2>/dev/null > DIR_BEFORE
+find %{buildroot}/usr/local/lib/python3*/site-packages -type d -print 2>/dev/null > DIR_BEFORE || true
 python3 setup.py build
 python3 setup.py install --root %{buildroot} --record=PY3_INSTALLED_FILES
 cat PY3_INSTALLED_FILES | xargs dirname | sort -u > DIR_AFTER
