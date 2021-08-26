@@ -72,6 +72,7 @@ rpm_package_source:
 		tar --transform 'flags=r;s,^,/$(SOURCE_NAME)/,' --exclude .git --exclude ./cms_meta_tools --exclude ./dist -cvjf $(SOURCE_PATH) .
 
 rpm_build_source:
+		uname -a
 		BUILD_METADATA=$(BUILD_METADATA) rpmbuild -ts $(SOURCE_PATH) --define "_topdir $(BUILD_DIR)"
 
 rpm_build:
