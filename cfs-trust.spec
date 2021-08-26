@@ -39,13 +39,13 @@ a trusted relationship with the configuration framework service (CFS).
 %setup -q
 
 %install
-#python3 setup.py build
+python3 setup.py build
 python3 setup.py install --root %{buildroot} --record=PY3_INSTALLED_FILES
-cat PY3_INSTALLED_FILES | grep __pycache__ | xargs dirname | xargs dirname | sort -u > INSTALLED_FILES
-cat INSTALLED_FILES
+#cat PY3_INSTALLED_FILES | grep __pycache__ | xargs dirname | xargs dirname | sort -u > INSTALLED_FILES
+cat PY3_INSTALLED_FILES
 
 %clean
-cat INSTALLED_FILES | xargs rm -f 
+#cat INSTALLED_FILES | xargs rm -f 
 
-%files -f INSTALLED_FILES
+%files
 %defattr(-,root,root)
