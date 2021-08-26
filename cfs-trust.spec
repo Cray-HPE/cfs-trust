@@ -27,7 +27,6 @@ Version: %(cat .version)
 Release: %(echo ${BUILD_METADATA})
 Source: %{name}-%{version}.tar.bz2
 Vendor: Cray Inc.
-BuildRequires: python3 >= 3.6.8
 Requires: python3 >= 3.6.5
 Requires: python3-base
 Requires: python3-requests
@@ -39,11 +38,9 @@ a trusted relationship with the configuration framework service (CFS).
 %prep
 %setup -q
 
-%build
-python3 setup.py build
-
 %install
-python3 setup.py install -O1 --root %{buildroot} --record=PY3_INSTALLED_FILES
+#python3 setup.py build
+python3 setup.py install --root %{buildroot} --record=PY3_INSTALLED_FILES
 cat PY3_INSTALLED_FILES | grep __pycache__ | xargs dirname | xargs dirname | uniq >> PY3_INSTALLED_FILES
 cat PY3_INSTALLED_FILES
 
