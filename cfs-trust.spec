@@ -50,7 +50,7 @@ cat DIR_INSTALLED_FILES
 cat INSTALLED_FILES
 
 %clean
-rm -rf  %{buildroot}/usr/lib/python3*/site-packages/cfs-ssh-trust*
+sed 's/^/%{buildroot}/' INSTALLED_FILES | xargs rm -rf 
 
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
