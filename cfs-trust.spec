@@ -42,6 +42,7 @@ a trusted relationship with the configuration framework service (CFS).
 uname -a
 cat /etc/*release*
 find %{buildroot}/usr/local/lib/python3*/site-packages -type d -print 2>/dev/null > DIR_BEFORE || true
+cat DIR_BEFORE
 python3 setup.py build
 python3 setup.py install --root %{buildroot} --record=PY3_INSTALLED_FILES
 cat PY3_INSTALLED_FILES | xargs dirname | sort -u > DIR_AFTER
@@ -49,7 +50,7 @@ cat PY3_INSTALLED_FILES
 cat DIR_AFTER
 
 %clean
-sed 's/^/%{buildroot}/' DIR_AFTER | while read X ; do
+sed 's#^#%{buildroot}#' DIR_AFTER | while read X ; do
     [ -d "$X" ] || continue
     grep -q "^$X$" DIR_BEFORE && continue
     rm -rf "$X"
