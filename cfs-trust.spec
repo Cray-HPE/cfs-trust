@@ -27,6 +27,8 @@ Version: %(cat .version)
 Release: %(echo ${BUILD_METADATA})
 Source: %{name}-%{version}.tar.bz2
 Vendor: Cray Inc.
+BuildRequires: python3 >= 3.6.8
+Requires: python3 >= 3.6.5
 Requires: python3-base
 Requires: python3-requests
 
@@ -36,16 +38,26 @@ a trusted relationship with the configuration framework service (CFS).
 
 %prep
 %setup -q
+find %{buildroot}/usr/local/lib/python3*/site-packages -type d -print 2>/dev/null > DIR_BEFORE || true
+cat DIR_BEFORE
 
 %build
-/usr/bin/python3 setup.py build
+python3 setup.py build
 
 %install
-rm -rf $RPM_BUILD_ROOT
-/usr/bin/python3 setup.py install -O1 --skip-build --root $RPM_BUILD_ROOT
+uname -a
+cat /etc/*release*
+python3 setup.py install --root %{buildroot} --record=PY3_INSTALLED_FILES
+cat PY3_INSTALLED_FILES | xargs dirname | sort -u > DIR_AFTER
+cat PY3_INSTALLED_FILES
+cat DIR_AFTER
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+sed 's#^#%{buildroot}#' DIR_AFTER | while read X ; do
+    [ -d "$X" ] || continue
+    grep -q "^$X$" DIR_BEFORE && continue
+    rm -rf "$X"
+done
 
-%files
+%files -f PY3_INSTALLED_FILES
 %defattr(-,root,root)
