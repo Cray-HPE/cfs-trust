@@ -75,15 +75,21 @@ pipeline {
                 }
 
                 stage('Build RPM') {
-                    environment {BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)}
-                    steps { sh "make rpm" }
+                    environment {
+                        BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
+                    }
+                    steps { 
+                        sh "make rpm" 
+                        // We cannot publish the RPM from inside this container because it requires use
+                        // of a docker container to sign the RPMs. So we save off the RPM artifacts and
+                        // restore them in a later stage for publishing
+                        stash includes: 'dist/rpmbuild/*RPMS/**/*.rpm', name: 'dist'
+                    }
                 }
 
                 stage('Publish') {
                     steps {
                         publishCsmPythonModules(module: env.PYTHON_MODULE_NAME, isStable: env.IS_STABLE)
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", arch: "x86_64", isStable: env.IS_STABLE)
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", arch: "src", isStable: env.IS_STABLE)
                     }
                 }
             }
@@ -144,8 +150,11 @@ pipeline {
                     environment {
                         DOCKER_VERSION = sh(returnStdout: true, script: "head -1 .docker_version").trim()
                     }
-
                     steps {
+                        // Restore previously-stashed RPM artifacts
+                        unstash 'dist'
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", arch: "x86_64", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", arch: "src", isStable: env.IS_STABLE)
                         publishCsmDockerImage(image: env.NAME, tag: env.DOCKER_VERSION, isStable: env.IS_STABLE)
                         publishCsmHelmCharts(component: env.NAME, chartsPath: "${WORKSPACE}/kubernetes/.packaged", isStable: env.IS_STABLE)
                     }
