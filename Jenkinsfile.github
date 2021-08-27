@@ -78,15 +78,6 @@ pipeline {
                     environment {BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)}
                     steps { sh "make rpm" }
                 }
-
-                stage('Publish') {
-                    steps {
-		    	sh "sudo zypper install -y docker && docker --version"
-                        publishCsmPythonModules(module: env.PYTHON_MODULE_NAME, isStable: env.IS_STABLE)
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", arch: "x86_64", isStable: env.IS_STABLE)
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", arch: "src", isStable: env.IS_STABLE)
-                    }
-                }
             }
         }
 
@@ -95,6 +86,14 @@ pipeline {
                 label "metal-gcp-builder"
             }
             stages {
+                stage('Publish rpm and pymod') {
+                    steps {
+                        publishCsmPythonModules(module: env.PYTHON_MODULE_NAME, isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", arch: "x86_64", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", arch: "src", isStable: env.IS_STABLE)
+                    }
+                }
+
                 stage("Clone cms_meta_tools repo") {
                     steps {
                         // This function is defined in cms-meta-tools:vars/cloneCMSMetaTools.groovy
