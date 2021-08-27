@@ -51,7 +51,7 @@ def setup_logging():
 
 if __name__ == '__main__':
     setup_logging()
-    timestamp = Timestamp.byref(TIMESTAMP_PATH)
+    timestamp = Timestamp.byref(path=TIMESTAMP_PATH)
     if timestamp.alive:
         LOGGER.info("%s is considered valid; the application is alive!" , timestamp)
         sys.exit(0)
