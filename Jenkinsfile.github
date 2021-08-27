@@ -78,7 +78,7 @@ pipeline {
                     environment {BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)}
                     steps { 
                         sh "make rpm" 
-                        stash includes: 'dist/**', name: 'dist'
+                        stash includes: 'dist/rpmbuild/*RPMS/**', name: 'dist'
                     }
                 }
 
