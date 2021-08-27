@@ -76,8 +76,6 @@ rpm_build_source:
 		BUILD_METADATA=$(BUILD_METADATA) rpmbuild -ts $(SOURCE_PATH) --define "_topdir $(BUILD_DIR)"
 
 rpm_build:
-		uname -a
-		cat /etc/*release*
 		BUILD_METADATA=$(BUILD_METADATA) rpmbuild -ba $(SPEC_FILE) --define "_topdir $(BUILD_DIR)" --define "python3_sitelib $(PYTHON_SITE_PACKAGES_PATH)"
 
 pymod:
