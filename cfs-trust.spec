@@ -48,8 +48,6 @@ cat DIR_BEFORE
 python3 setup.py build
 
 %install
-uname -a
-cat /etc/*release*
 python3 setup.py install --root %{buildroot} --record=PY3_INSTALLED_FILES
 # Find all Python package directories that now exist on the system
 cat PY3_INSTALLED_FILES | xargs dirname | sort -u > DIR_AFTER
