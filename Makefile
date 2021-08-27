@@ -49,6 +49,7 @@ lint:
 		./cms_meta_tools/scripts/runLint.sh
 
 prepare:
+		pip3 install --upgrade pip setuptools wheel
 		rm -rf $(BUILD_DIR)
 		mkdir -p $(BUILD_DIR)/SPECS $(BUILD_DIR)/SOURCES
 		cp $(SPEC_FILE) $(BUILD_DIR)/SPECS/
@@ -75,6 +76,8 @@ rpm_build_source:
 		BUILD_METADATA=$(BUILD_METADATA) rpmbuild -ts $(SOURCE_PATH) --define "_topdir $(BUILD_DIR)"
 
 rpm_build:
+		uname -a
+		cat /etc/*release*
 		BUILD_METADATA=$(BUILD_METADATA) rpmbuild -ba $(SPEC_FILE) --define "_topdir $(BUILD_DIR)" --define "python3_sitelib $(PYTHON_SITE_PACKAGES_PATH)"
 
 pymod:
