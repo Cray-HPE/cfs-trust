@@ -81,6 +81,7 @@ pipeline {
 
                 stage('Publish') {
                     steps {
+		    	sh "docker --version"
                         publishCsmPythonModules(module: env.PYTHON_MODULE_NAME, isStable: env.IS_STABLE)
                         publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", arch: "x86_64", isStable: env.IS_STABLE)
                         publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", arch: "src", isStable: env.IS_STABLE)
