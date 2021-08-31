@@ -22,6 +22,8 @@
 # (MIT License)
 import setuptools
 
+name_str = "cfs-ssh-trust"
+
 with open("README.md", "r") as fh:
     long_description = fh.read().strip()
 
@@ -35,7 +37,7 @@ package_dir = {'cfsssh':                        'src/cfsssh',
                'cfsssh.setup.client':           'src/cfsssh/setup/client',}
 
 setuptools.setup(
-    name="cfs-ssh-trust",
+    name=name_str,
     version=version_str,
     author="HPE Development LP",
     author_email="sps@cray.com",
@@ -46,7 +48,7 @@ setuptools.setup(
     package_dir = package_dir,
     packages = list(package_dir.keys()),
     keywords="vault ssh cfs kubernetes trust certificates",
-    data_files=[('cfsssh', ['gitInfo.txt'])],
+    data_files=[('%s-build-metadata' % name_str, ['gitInfo.txt'])],
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "License :: MIT License",
