@@ -1,5 +1,5 @@
-@Library('cms-meta-tools') _
-@Library('csm-shared-library@mitch') __
+@Library('cms-meta-tools@mitch') _
+@Library('csm-shared-library') __
 
 def runBuildPrep() {
     sh "make runbuildprep"
