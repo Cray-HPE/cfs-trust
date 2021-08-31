@@ -26,7 +26,7 @@ WORKDIR /app
 RUN mkdir /app/src
 COPY /src/ /app/src
 COPY /src/cfsssh/cloudinit/ /app/src/cloudinit
-COPY setup.py README.md .version /app/
+COPY gitInfo.txt setup.py README.md .version /app/
 ADD constraints.txt requirements.txt /app/
 RUN apk add --no-cache linux-headers gcc g++ python3-dev py3-pip musl-dev libffi-dev openssl-dev git jq curl openssh-client nginx && \
     python3 -m pip install --upgrade pip && \
