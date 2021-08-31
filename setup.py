@@ -25,7 +25,11 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read().strip()
 
-version_str = "@VERSION@"
+with open("gitInfo.txt", "r") as fh:
+    long_description += '\n' + fh.read()
+
+with open(".version", "r") as fh:
+    version_str = fh.read()
 
 package_dir = {'cfsssh':                        'src/cfsssh',
                'cfsssh.cloudinit':              'src/cfsssh/cloudinit',
@@ -48,7 +52,7 @@ setuptools.setup(
     keywords="vault ssh cfs kubernetes trust certificates",
     classifiers=[
         "Programming Language :: Python :: 3.6",
-        "License :: Other/Proprietary License",
+        "License :: OSI Approved :: MIT License",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: System :: Systems Administration",
     ],
