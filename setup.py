@@ -1,4 +1,4 @@
-# setup.py for cfsssh-setup
+# setup.py for cfs-ssh-trust
 # Copyright 2020-2021 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -46,9 +46,10 @@ setuptools.setup(
     package_dir = package_dir,
     packages = list(package_dir.keys()),
     keywords="vault ssh cfs kubernetes trust certificates",
+    data_files=[('gitInfo', ['build-metadata/gitInfo.txt'])],
     classifiers=[
         "Programming Language :: Python :: 3.6",
-        "License :: Other/Proprietary License",
+        "License :: MIT License",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: System :: Systems Administration",
     ],
