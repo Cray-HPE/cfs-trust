@@ -46,7 +46,7 @@ setuptools.setup(
     package_dir = package_dir,
     packages = list(package_dir.keys()),
     keywords="vault ssh cfs kubernetes trust certificates",
-    data_files=[('gitInfo', ['build-metadata/gitInfo.txt'])],
+    data_files=[('gitInfo', ['gitInfo.txt'])],
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "License :: MIT License",
