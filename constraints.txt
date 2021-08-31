@@ -4,7 +4,7 @@ certifi==2020.12.5
 chardet==4.0.0
 google-auth==1.24.0
 idna==2.10
-liveness==1.2.17
+liveness==1.2.19
 oauthlib==3.1.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
