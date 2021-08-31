@@ -25,8 +25,7 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read().strip()
 
-with open(".version", "r") as fh:
-    version_str = fh.read().strip()
+version_str = "@VERSION@"
 
 package_dir = {'cfsssh':                        'src/cfsssh',
                'cfsssh.cloudinit':              'src/cfsssh/cloudinit',
