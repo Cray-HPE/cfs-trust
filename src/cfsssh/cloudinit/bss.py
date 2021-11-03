@@ -40,7 +40,7 @@ if in_cluster():
     METADATA_ENDPOINT = '%s/%s' % (SERVICE_ENDPOINT, METADATA_SUFFIX)
 else:
     PROTOCOL = 'http'
-    DNS_NAME = 'api_gw_service.local'
+    DNS_NAME = 'api-gw-service-nmn.local'
     PARAMETERS_ENDPOINT = '%s://%s/%s' % (PROTOCOL, DNS_NAME, BOOT_PARAM_SUFFIX)
     METADATA_ENDPOINT = '%s://%s:8888/%s' %(PROTOCOL, DNS_NAME, METADATA_SUFFIX)
 
