@@ -1,4 +1,25 @@
-# Copyright 2020-2021 Hewlett Packard Enterprise Development LP
+#
+# MIT License
+#
+# (C) Copyright 2020-2022 Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -44,7 +65,7 @@ from kubernetes.config.config_exception import ConfigException
 from kubernetes.client.rest import ApiException
 from requests.exceptions import HTTPError
 
-from cfsssh.cloudinit.bss import put_global_metadata_key, get_global_metadata_key, BSSException
+from cfsssh.cloudinit.bss import patch_global_metadata_key, get_global_metadata_key, BSSException
 from cfsssh.kubernetes import KubeToken
 from cfsssh.connection import requests_retry_session
 from cfsssh.vault import VaultClient, VaultSshKey, SshPublicKeyCert, SigningKey
@@ -85,7 +106,7 @@ def conditionally_populate_bss_trust(public_key, session=None):
     unset = True
     while unset:
         try:
-            put_global_metadata_key(VAULT_GLOBAL_KEY, public_key, session)
+            patch_global_metadata_key(VAULT_GLOBAL_KEY, public_key, session)
         except BSSException:
             time.sleep(1)
             continue
@@ -146,6 +167,11 @@ def run():
         except ApiException:
             LOGGER.info("Replacing expiring certificate...")
             v1.replace_namespaced_secret(name=CFS_SIGNED_KEY_NAME, namespace=K8S_NAMESPACE, body=body)
+
+        # Heal BSS metadata service in case our key has gone missing for whatever reason
+        LOGGER.info("Re-patching BSS metadata if needed...")
+        conditionally_populate_bss_trust(signing_key_public_key)
+
         # Wait 6 Hours to refresh our token
         LOGGER.info("Signed secret created; waiting 6 hours to renew.")
 
