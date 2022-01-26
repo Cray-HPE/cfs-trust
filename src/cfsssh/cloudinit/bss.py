@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Hewlett Packard Enterprise Development LP
+# Copyright 2020-2022 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -62,10 +62,10 @@ def get_global_metadata_key(key, session=None):
     # This will raise a key error if it isn't defined!
     return obj['Global'][key]
 
-def put_global_metadata_key(key, value, session=None):
+def patch_global_metadata_key(key, value, session=None):
     session = session or requests_retry_session()
     put_payload = {"hosts" : ["Global"], 'cloud-init': {'meta-data': {key: value}}}
-    response = session.put(PARAMETERS_ENDPOINT, json=put_payload)
+    response = session.patch(PARAMETERS_ENDPOINT, json=put_payload)
     try:
         response.raise_for_status()
     except Exception as exc:
