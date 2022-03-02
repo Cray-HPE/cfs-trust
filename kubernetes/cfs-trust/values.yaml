@@ -19,8 +19,7 @@ cray-service:
     cfs-trust:
       name: "cfs-trust"
       image:
-        repository: "cray/cfs-trust"
-        pullPolicy: Always
+        repository: artifactory.algol60.net/csm-docker/stable/cfs-trust
       resources:
         requests:
           memory: "100Mi"

@@ -10,7 +10,10 @@ def runLint() {
 }
 
 pipeline {
-    agent none
+    agent {
+        label "metal-gcp-builder"
+    }
+
     options {
         buildDiscarder(logRotator(numToKeepStr: "10"))
         timestamps()
@@ -20,14 +23,40 @@ pipeline {
         NAME = "cfs-trust"
         DESCRIPTION = "Configuration Framework Service Trust Environment"
         IS_STABLE = getBuildIsStable()
+        PUBLISH_SP2 = "sle-15sp2"
+        PUBLISH_SP3 = "sle-15sp3"
     }
 
     stages {
-        stage("Python module and RPM") {
+        stage("Clone cms_meta_tools repo") {
+            steps {
+                // This function is defined in cms-meta-tools:vars/cloneCMSMetaTools.groovy
+                cloneCMSMetaTools()
+            }
+        }
+
+        stage("Set Versions") {
+            steps {
+                // This function is defined in cms-meta-tools:vars/setVersionFiles.groovy
+                setVersionFiles()
+            }
+        }
+
+        stage("runBuildPrep") {
+            steps { runBuildPrep() }
+        }
+
+        stage("Lint") {
+            steps { runLint() }
+        }
+
+        stage("Python module") {
             agent {
                 docker {
-                    label "metal-gcp-builder"
                     image "arti.dev.cray.com/dstbuildenv-docker-master-local/cray-sle15sp3_build_environment:latest"
+                    reuseNode true
+                    // Support docker in docker for clamav scan
+                    args "-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker --group-add 999"
                 }
             }
             environment {
@@ -35,34 +64,6 @@ pipeline {
                 BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
             }
             stages {
-                stage("Clone cms_meta_tools repo") {
-                    steps {
-                        // This function is defined in cms-meta-tools:vars/cloneCMSMetaTools.groovy
-                        cloneCMSMetaTools()
-                    }
-                }
-
-                stage("Set Versions") {
-                    steps {
-                        // This function is defined in cms-meta-tools:vars/setVersionFiles.groovy
-                        setVersionFiles()
-                    }
-                }
-
-                stage("runBuildPrep") {
-                    steps { runBuildPrep() }
-                }
-
-                stage("Lint") {
-                    steps { runLint() }
-                }
-
-                stage("Add RPM Metadata") {
-                    steps {
-                        echo "RPM build metadata is ${env.BUILD_METADATA}"
-                        runLibraryScript("addRpmMetaData.sh", "")
-                    }
-                }
 
                 stage("Prepare") {
                     steps {
@@ -74,20 +75,7 @@ pipeline {
                     steps { sh "make pymod" }
                 }
 
-                stage('Build RPM') {
-                    environment {
-                        BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
-                    }
-                    steps { 
-                        sh "make rpm" 
-                        // We cannot publish the RPM from inside this container because it requires use
-                        // of a docker container to sign the RPMs. So we save off the RPM artifacts and
-                        // restore them in a later stage for publishing
-                        stash includes: 'dist/rpmbuild/*RPMS/**/*.rpm', name: 'dist'
-                    }
-                }
-
-                stage('Publish') {
+                stage('Publish Python Module') {
                     steps {
                         publishCsmPythonModules(module: env.PYTHON_MODULE_NAME, isStable: env.IS_STABLE)
                     }
@@ -95,33 +83,57 @@ pipeline {
             }
         }
 
-        stage("Chart and Image") {
-            agent {
-                label "metal-gcp-builder"
+        stage("Add RPM Metadata") {
+            steps {
+                echo "RPM build metadata is ${env.BUILD_METADATA}"
+                runLibraryScript("addRpmMetaData.sh", "")
             }
+        }
+
+        stage('Build SP2 RPM') {
+            environment {
+                BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
+            }
+            agent {
+                docker {
+                    image "arti.dev.cray.com/dstbuildenv-docker-master-local/cray-sle15sp2_build_environment:latest"
+                    reuseNode true
+                    // Support docker in docker for clamav scan
+                    args "-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker --group-add 999"
+                }
+            }
+            steps {
+                sh "make rpm"
+                // We cannot publish the RPM from inside this container because it requires use
+                // of a docker container to sign the RPMs. So we save off the RPM artifacts and
+                // restore them in a later stage for publishing
+                stash includes: 'dist/rpmbuild/*RPMS/**/*.rpm', name: 'SP2 Rpms'
+            }
+        }
+
+        stage('Build SP3 RPM') {
+            environment {
+                BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
+            }
+            agent {
+                docker {
+                    image "arti.dev.cray.com/dstbuildenv-docker-master-local/cray-sle15sp3_build_environment:latest"
+                    reuseNode true
+                    // Support docker in docker for clamav scan
+                    args "-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker --group-add 999"
+                }
+            }
+            steps {
+                sh "make rpm"
+                // We cannot publish the RPM from inside this container because it requires use
+                // of a docker container to sign the RPMs. So we save off the RPM artifacts and
+                // restore them in a later stage for publishing
+                stash includes: 'dist/rpmbuild/*RPMS/**/*.rpm', name: 'SP3 Rpms'
+            }
+        }
+
+        stage("Chart and Image") {
             stages {
-                stage("Clone cms_meta_tools repo") {
-                    steps {
-                        // This function is defined in cms-meta-tools:vars/cloneCMSMetaTools.groovy
-                        cloneCMSMetaTools()
-                    }
-                }
-
-                stage("Set Versions") {
-                    steps {
-                        // This function is defined in cms-meta-tools:vars/setVersionFiles.groovy
-                        setVersionFiles()
-                    }
-                }
-
-                stage("runBuildPrep") {
-                    steps { runBuildPrep() }
-                }
-
-                stage("Lint") {
-                    steps { runLint() }
-                }
-
                 stage("Build") {
                     parallel {
                         stage('Image') {
@@ -152,11 +164,23 @@ pipeline {
                     }
                     steps {
                         // Restore previously-stashed RPM artifacts
-                        unstash 'dist'
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", arch: "x86_64", isStable: env.IS_STABLE)
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", arch: "src", isStable: env.IS_STABLE)
                         publishCsmDockerImage(image: env.NAME, tag: env.DOCKER_VERSION, isStable: env.IS_STABLE)
                         publishCsmHelmCharts(component: env.NAME, chartsPath: "${WORKSPACE}/kubernetes/.packaged", isStable: env.IS_STABLE)
+                    }
+                }
+                stage('Publish SP2 Rpms') {
+                    steps {
+                        unstash 'SP2 Rpms'
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", os: env.PUBLISH_SP2, arch: "x86_64", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: env.PUBLISH_SP2, arch: "src", isStable: env.IS_STABLE)
+                    }
+                }
+
+                stage('Publish SP3 Rpms') {
+                    steps {
+                        unstash 'SP3 Rpms'
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", os: env.PUBLISH_SP3, arch: "x86_64", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: env.PUBLISH_SP3, arch: "src", isStable: env.IS_STABLE)
                     }
                 }
             }
