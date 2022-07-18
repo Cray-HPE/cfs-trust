@@ -50,6 +50,7 @@ pipeline {
         IS_STABLE = getBuildIsStable()
         PUBLISH_SP2 = "sle-15sp2"
         PUBLISH_SP3 = "sle-15sp3"
+        PUBLISH_SP4 = "sle-15sp4"
     }
 
     stages {
@@ -157,6 +158,27 @@ pipeline {
             }
         }
 
+        stage('Build SP4 RPM') {
+            environment {
+                BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
+            }
+            agent {
+                docker {
+                    image "arti.dev.cray.com/dstbuildenv-docker-master-local/cray-sle15sp4_build_environment:latest"
+                    reuseNode true
+                    // Support docker in docker for clamav scan
+                    args "-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker --group-add 999"
+                }
+            }
+            steps {
+                sh "make rpm"
+                // We cannot publish the RPM from inside this container because it requires use
+                // of a docker container to sign the RPMs. So we save off the RPM artifacts and
+                // restore them in a later stage for publishing
+                stash includes: 'dist/rpmbuild/*RPMS/**/*.rpm', name: 'SP4 Rpms'
+            }
+        }
+
         stage("Chart and Image") {
             stages {
                 stage("Build") {
@@ -206,6 +228,14 @@ pipeline {
                         unstash 'SP3 Rpms'
                         publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", os: env.PUBLISH_SP3, arch: "x86_64", isStable: env.IS_STABLE)
                         publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: env.PUBLISH_SP3, arch: "src", isStable: env.IS_STABLE)
+                    }
+                }
+
+                stage('Publish SP4 Rpms') {
+                    steps {
+                        unstash 'SP4 Rpms'
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", os: env.PUBLISH_SP4, arch: "x86_64", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: env.PUBLISH_SP4, arch: "src", isStable: env.IS_STABLE)
                     }
                 }
             }
