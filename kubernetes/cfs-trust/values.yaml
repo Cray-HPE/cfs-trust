@@ -38,6 +38,7 @@ cray-service:
   nodeSelector:
     node-discovery.cray.com/networks.node_management: "true"
   replicaCount: 1
+  priorityClassName: csm-high-priority-service
   containers:
     cfs-trust:
       name: "cfs-trust"
