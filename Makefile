@@ -39,6 +39,10 @@ BUILD_DIR ?= $(PWD)/dist/rpmbuild
 SOURCE_PATH := ${BUILD_DIR}/SOURCES/${SOURCE_NAME}.tar.bz2
 PYTHON_SITE_PACKAGES_PATH ?= $(shell python3 -c 'import site; print(site.getsitepackages()[0])')
 
+ifneq ($(wildcard ${HOME}/.netrc),)
+        DOCKER_ARGS ?= --secret id=netrc,src=${HOME}/.netrc
+endif
+
 all : runbuildprep lint prepare image chart rpm pymod
 chart: chart_setup chart_package chart_test
 rpm: rpm_package_source rpm_build_source rpm_build
