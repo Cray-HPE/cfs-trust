@@ -1,5 +1,5 @@
 # Dockerfile for CFS Trust
-# Copyright 2019-2021 Hewlett Packard Enterprise Development LP
+# Copyright 2019-2022 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -28,10 +28,11 @@ COPY /src/ /app/src
 COPY /src/cfsssh/cloudinit/ /app/src/cloudinit
 COPY setup.py README.md .version gitInfo.txt /app/
 ADD constraints.txt requirements.txt /app/
-RUN apk add --upgrade --no-cache apk-tools &&  \
-	apk update && \
-	apk add --no-cache linux-headers gcc g++ python3-dev py3-pip musl-dev libffi-dev openssl-dev git jq curl openssh-client && \
-	apk -U upgrade --no-cache && \
+RUN --mount=type=secret,id=netrc,target=/root/.netrc \
+    apk add --upgrade --no-cache apk-tools &&  \
+    apk update && \
+    apk add --no-cache linux-headers gcc g++ python3-dev py3-pip musl-dev libffi-dev openssl-dev git jq curl openssh-client && \
+    apk -U upgrade --no-cache && \
     python3 -m pip install --upgrade pip && \
     pip3 install --no-cache-dir -U pip && \
     pip3 install --no-cache-dir -r requirements.txt
