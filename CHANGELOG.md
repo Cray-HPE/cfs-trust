@@ -6,11 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
-- Spelling corrections.
+
+## [1.6.2] - 2022-12-02
+### Added
 - Authenticate to CSM's artifactory
 
-## [1.5.1] - 8/18/22
+### Changed
+- Spelling corrections.
+
+## [1.5.1] - 2022-08-18
 ### Fixed
 - Escalated pod priority so that configuration has a better chance of running when a node is cordoned
 
