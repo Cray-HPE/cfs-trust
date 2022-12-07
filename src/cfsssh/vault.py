@@ -214,7 +214,7 @@ class VaultSshKey(object):
     @classmethod
     def Create(cls, name, *args, **kwargs):
         """
-        Initilizes a new VaultSSHKey record and creates it using Vault.
+        Initializes a new VaultSSHKey record and creates it using Vault.
         """
         self = cls(name, *args, **kwargs)
         response = requests.post(self.creation_endpoint, headers=self.vault_client.token_header,

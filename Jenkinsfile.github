@@ -48,6 +48,7 @@ pipeline {
         NAME = "cfs-trust"
         DESCRIPTION = "Configuration Framework Service Trust Environment"
         IS_STABLE = getBuildIsStable()
+	DOCKER_BUILDKIT = "1"
         PUBLISH_SP2 = "sle-15sp2"
         PUBLISH_SP3 = "sle-15sp3"
         PUBLISH_SP4 = "sle-15sp4"
