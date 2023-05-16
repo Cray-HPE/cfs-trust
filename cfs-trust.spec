@@ -26,6 +26,7 @@ Group: System/Management
 Version: %(cat .version)
 Release: %(echo ${BUILD_METADATA})
 Source: %{name}-%{version}.tar.bz2
+BuildArch: noarch
 Vendor: Cray Inc.
 BuildRequires: python3 >= 3.6.8
 Requires: python3 >= 3.6.5
