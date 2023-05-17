@@ -221,7 +221,7 @@ pipeline {
                 stage('Publish SP2 Rpms') {
                     steps {
                         unstash 'SP2 Rpms'
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", os: env.PUBLISH_SP2, arch: "x86_64", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/noarch/*.rpm", os: env.PUBLISH_SP2, arch: "noarch", isStable: env.IS_STABLE)
                         publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: env.PUBLISH_SP2, arch: "src", isStable: env.IS_STABLE)
                     }
                 }
@@ -229,7 +229,7 @@ pipeline {
                 stage('Publish SP3 Rpms') {
                     steps {
                         unstash 'SP3 Rpms'
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", os: env.PUBLISH_SP3, arch: "x86_64", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/noarch/*.rpm", os: env.PUBLISH_SP3, arch: "noarch", isStable: env.IS_STABLE)
                         publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: env.PUBLISH_SP3, arch: "src", isStable: env.IS_STABLE)
                     }
                 }
@@ -237,7 +237,7 @@ pipeline {
                 stage('Publish SP4 Rpms') {
                     steps {
                         unstash 'SP4 Rpms'
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/x86_64/*.rpm", os: env.PUBLISH_SP4, arch: "x86_64", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/noarch/*.rpm", os: env.PUBLISH_SP4, arch: "noarch", isStable: env.IS_STABLE)
                         publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: env.PUBLISH_SP4, arch: "src", isStable: env.IS_STABLE)
                     }
                 }
