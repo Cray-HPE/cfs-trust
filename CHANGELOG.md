@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## [1.6.7] - 2023-07-25
+### Dependencies
+- Use `update_external_versions` to get latest patch version of `liveness` Python module.
+- Bumped dependency patch versions:
+| Package                  | From     | To       |
+|--------------------------|----------|----------|
+| `cachetools`             | 4.2.1    | 4.2.4    |
+| `oauthlib`               | 3.1.0    | 3.1.1    |
+| `python-dateutil`        | 2.8.1    | 2.8.2    |
+| `requests-oauthlib`      | 1.3.0    | 1.3.1    |
+| `rsa`                    | 4.7      | 4.7.2    |
+| `urllib3`                | 1.26.2   | 1.26.16  |
+
 ## [1.6.6] - 2023-07-18
 ### Dependencies
 - Bump `PyYAML` from 5.4.1 to 6.0.1 to avoid build issue caused by https://github.com/yaml/pyyaml/issues/601
