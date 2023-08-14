@@ -36,6 +36,8 @@ def runLint() {
     sh "make lint"
 }
 
+def pyImage = 'artifactory.algol60.net/csm-docker/stable/csm-docker-sle-python'
+
 pipeline {
     agent {
         label "metal-gcp-builder"
@@ -43,6 +45,8 @@ pipeline {
 
     options {
         buildDiscarder(logRotator(numToKeepStr: "10"))
+        disableConcurrentBuilds()
+        timeout(time: 90, unit: 'MINUTES')
         timestamps()
     }
 
@@ -50,11 +54,9 @@ pipeline {
         NAME = "cfs-trust"
         DESCRIPTION = "Configuration Framework Service Trust Environment"
         IS_STABLE = getBuildIsStable()
-	DOCKER_BUILDKIT = "1"
-        PUBLISH_SP2 = "sle-15sp2"
-        PUBLISH_SP3 = "sle-15sp3"
-        PUBLISH_SP4 = "sle-15sp4"
-        PUBLISH_SP5 = "sle-15sp5"
+        DOCKER_BUILDKIT = "1"
+        // Extract the Python version from setup.py
+        PY_VERSION = sh(returnStdout: true, script: "grep -Eo 'Programming Language :: Python :: [1-9][0-9]*[.][0-9][0-9]*' setup.py | grep -Eo '[1-9][0-9]*[.][0-9][0-9]*'").trim()
     }
 
     stages {
@@ -83,10 +85,9 @@ pipeline {
         stage("Python module") {
             agent {
                 docker {
-                    image "arti.hpc.amslabs.hpecorp.net/dstbuildenv-docker-master-local/cray-sle15sp3_build_environment:latest"
+                    label 'python'
+                    image "${pyImage}:${env.PY_VERSION}"
                     reuseNode true
-                    // Support docker in docker for clamav scan
-                    args "-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker --group-add 999"
                 }
             }
             environment {
@@ -120,155 +121,62 @@ pipeline {
             }
         }
 
-        stage('Build SP2 RPM') {
-            environment {
-                BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
-            }
-            agent {
-                docker {
-                    image "arti.hpc.amslabs.hpecorp.net/dstbuildenv-docker-master-local/cray-sle15sp2_build_environment:latest"
-                    reuseNode true
-                    // Support docker in docker for clamav scan
-                    args "-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker --group-add 999"
-                }
-            }
-            steps {
-                sh "make rpm"
-                // We cannot publish the RPM from inside this container because it requires use
-                // of a docker container to sign the RPMs. So we save off the RPM artifacts and
-                // restore them in a later stage for publishing
-                stash includes: 'dist/rpmbuild/*RPMS/**/*.rpm', name: 'SP2 Rpms'
-            }
-        }
-
-        stage('Build SP3 RPM') {
-            environment {
-                BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
-            }
-            agent {
-                docker {
-                    image "arti.hpc.amslabs.hpecorp.net/dstbuildenv-docker-master-local/cray-sle15sp3_build_environment:latest"
-                    reuseNode true
-                    // Support docker in docker for clamav scan
-                    args "-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker --group-add 999"
-                }
-            }
-            steps {
-                sh "make rpm"
-                // We cannot publish the RPM from inside this container because it requires use
-                // of a docker container to sign the RPMs. So we save off the RPM artifacts and
-                // restore them in a later stage for publishing
-                stash includes: 'dist/rpmbuild/*RPMS/**/*.rpm', name: 'SP3 Rpms'
-            }
-        }
-
-        stage('Build SP4 RPM') {
-            environment {
-                BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
-            }
-            agent {
-                docker {
-                    image "arti.hpc.amslabs.hpecorp.net/dstbuildenv-docker-master-local/cray-sle15sp4_build_environment:latest"
-                    reuseNode true
-                    // Support docker in docker for clamav scan
-                    args "-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker --group-add 999"
-                }
-            }
-            steps {
-                sh "make rpm"
-                // We cannot publish the RPM from inside this container because it requires use
-                // of a docker container to sign the RPMs. So we save off the RPM artifacts and
-                // restore them in a later stage for publishing
-                stash includes: 'dist/rpmbuild/*RPMS/**/*.rpm', name: 'SP4 Rpms'
-            }
-        }
-
-        stage('Build SP5 RPM') {
-            environment {
-                BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
-            }
-            agent {
-                docker {
-                    image "arti.hpc.amslabs.hpecorp.net/dstbuildenv-docker-master-local/cray-sle15sp5_build_environment:latest"
-                    reuseNode true
-                    // Support docker in docker for clamav scan
-                    args "-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker --group-add 999"
-                }
-            }
-            steps {
-                sh "make rpm"
-                // We cannot publish the RPM from inside this container because it requires use
-                // of a docker container to sign the RPMs. So we save off the RPM artifacts and
-                // restore them in a later stage for publishing
-                stash includes: 'dist/rpmbuild/*RPMS/**/*.rpm', name: 'SP5 Rpms'
-            }
-        }
-
-        stage("Chart and Image") {
-            stages {
-                stage("Build") {
-                    parallel {
-                        stage('Image') {
-                            environment {
-                                DOCKER_VERSION = sh(returnStdout: true, script: "head -1 .docker_version").trim()
-                                DOCKER_ARGS = getDockerBuildArgs(name: env.NAME, description: env.DESCRIPTION, version: env.DOCKER_VERSION)
-                            }
-
-                            steps { sh "make image" }
-                        }
-
-                        stage('Chart') {
-                            environment {
-                                DOCKER_VERSION = sh(returnStdout: true, script: "head -1 .docker_version").trim()
-                            }
-
-                            steps {
-                                updateCsmHelmChartAppVersion(chartPath: "${WORKSPACE}/kubernetes/${NAME}", appVersion: env.DOCKER_VERSION)
-                                sh "make chart"
-                            }
-                        }
+        stage("Build Chart, Image, and RPMs") {
+            parallel {
+                stage('Image') {
+                    environment {
+                        DOCKER_VERSION = sh(returnStdout: true, script: "head -1 .docker_version").trim()
+                        DOCKER_ARGS = getDockerBuildArgs(name: env.NAME, description: env.DESCRIPTION, version: env.DOCKER_VERSION)
                     }
+                    steps { sh "make image" }
                 }
 
-                stage('Publish ') {
+                stage('Chart') {
                     environment {
                         DOCKER_VERSION = sh(returnStdout: true, script: "head -1 .docker_version").trim()
                     }
                     steps {
-                        // Restore previously-stashed RPM artifacts
+                        updateCsmHelmChartAppVersion(chartPath: "${WORKSPACE}/kubernetes/${NAME}", appVersion: env.DOCKER_VERSION)
+                        sh "make chart"
+                    }
+                }
+                stage('RPM') {
+                    environment {
+                        BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
+                    }
+                    agent {
+                        docker {
+                            label 'python'
+                            image "${pyImage}:${env.PY_VERSION}"
+                            reuseNode true
+                        }
+                    }
+                    steps {
+                        sh "make rpm"
+                    }
+                }
+            }
+        }
+
+        stage('Publish ') {
+            parallel {
+                stage('Publish Docker') {
+                    environment {
+                        DOCKER_VERSION = sh(returnStdout: true, script: "head -1 .docker_version").trim()
+                    }
+                    steps {
                         publishCsmDockerImage(image: env.NAME, tag: env.DOCKER_VERSION, isStable: env.IS_STABLE)
+                    }
+                }
+                stage('Publish Helm Chart') {
+                    steps {
                         publishCsmHelmCharts(component: env.NAME, chartsPath: "${WORKSPACE}/kubernetes/.packaged", isStable: env.IS_STABLE)
                     }
                 }
-                stage('Publish SP2 Rpms') {
+                stage('Publish RPMs') {
                     steps {
-                        unstash 'SP2 Rpms'
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/noarch/*.rpm", os: env.PUBLISH_SP2, arch: "noarch", isStable: env.IS_STABLE)
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: env.PUBLISH_SP2, arch: "src", isStable: env.IS_STABLE)
-                    }
-                }
-
-                stage('Publish SP3 Rpms') {
-                    steps {
-                        unstash 'SP3 Rpms'
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/noarch/*.rpm", os: env.PUBLISH_SP3, arch: "noarch", isStable: env.IS_STABLE)
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: env.PUBLISH_SP3, arch: "src", isStable: env.IS_STABLE)
-                    }
-                }
-
-                stage('Publish SP4 Rpms') {
-                    steps {
-                        unstash 'SP4 Rpms'
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/noarch/*.rpm", os: env.PUBLISH_SP4, arch: "noarch", isStable: env.IS_STABLE)
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: env.PUBLISH_SP4, arch: "src", isStable: env.IS_STABLE)
-                    }
-                }
-
-                stage('Publish SP5 Rpms') {
-                    steps {
-                        unstash 'SP5 Rpms'
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/noarch/*.rpm", os: env.PUBLISH_SP5, arch: "noarch", isStable: env.IS_STABLE)
-                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: env.PUBLISH_SP5, arch: "src", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/noarch/*.rpm", os: "noos", arch: "noarch", isStable: env.IS_STABLE)
+                        publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", os: "noos", arch: "src", isStable: env.IS_STABLE)
                     }
                 }
             }
