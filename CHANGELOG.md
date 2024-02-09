@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disabled concurrent Jenkins builds on same branch/commit
 - Added build timeout to avoid hung builds
 
+### Dependencies
+- Bump `kubernetes` from 12.0.0 to 22.6.0 to match CSM 1.6 Kubernetes version
+
 ## [1.6.7] - 2023-07-25
 ### Dependencies
 - Use `update_external_versions` to get latest patch version of `liveness` Python module.
