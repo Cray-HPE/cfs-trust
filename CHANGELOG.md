@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - When building unstable charts, have them point to the corresponding unstable Docker image
+- Remove Randy Kleinman from the chart maintainer list; add Mitch Harding
 
 ## [1.7.0] - 2024-02-22
 ### Changed
