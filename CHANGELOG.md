@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- When building unstable charts, have them point to the corresponding unstable Docker image
+
 ## [1.7.0] - 2024-02-22
 ### Changed
 - Disabled concurrent Jenkins builds on same branch/commit
