@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Dependencies
+- Instead of using `update_external_versions` to find the latest patch version of
+  liveness, instead just pin the major/minor number directly in [`constraints.txt`](constraints.txt).
+
 ### Changed
 - When building unstable charts, have them point to the corresponding unstable Docker image
 - Remove Randy Kleinman from the chart maintainer list; add Mitch Harding
