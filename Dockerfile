@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2019-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2019-2022, 2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -35,8 +35,10 @@ RUN --mount=type=secret,id=netrc,target=/root/.netrc \
     apk -U upgrade --no-cache && \
     python3 -m pip install --upgrade pip && \
     pip3 install --no-cache-dir -U pip && \
-    pip3 install --no-cache-dir -r requirements.txt
+    pip3 install --no-cache-dir -r requirements.txt && \
+    pip3 list --format freeze
 RUN pip3 install --no-cache-dir . && \
+    pip3 list --format freeze && \
     rm -rf /app/*
 USER nobody:nobody
 ENTRYPOINT [ "python3", "-m", "cfsssh.setup.service" ]
