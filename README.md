@@ -6,7 +6,7 @@ will be replaced with generated credential information that is stored in kuberne
 then reference this information each time they need to authenticate into hosts that have been bootstrapped.
 
 ## Build Helpers
-This repo uses some build helper scripts from the 
+This repo uses some build helper scripts from the
 [cms-meta-tools](https://github.com/Cray-HPE/cms-meta-tools) repo. See that repo for more details.
 
 ## Local Builds

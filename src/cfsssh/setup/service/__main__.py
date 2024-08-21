@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2020-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2020-2022, 2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -111,7 +111,7 @@ def run():
     # if the keys are already created in vault.
     v1 = client.CoreV1Api()
     metadata = {'name': CFS_KEY_NAME, 'namespace': K8S_NAMESPACE}
-    data=  {CFS_PUBLIC_KEY_NAME: base64.b64encode(vssh.public_key.strip().encode('utf-8')).decode('utf-8'), 
+    data=  {CFS_PUBLIC_KEY_NAME: base64.b64encode(vssh.public_key.strip().encode('utf-8')).decode('utf-8'),
             CFS_PRIVATE_KEY_NAME: base64.b64encode(vssh.private_key.strip().encode('utf-8')).decode('utf-8')}
     # To decode these values back then:
     #  base64.b64decode(value.encode('utf-8')).decode('utf-8')

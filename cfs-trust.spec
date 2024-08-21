@@ -1,4 +1,4 @@
-# Copyright 2020-2023 Hewlett Packard Enterprise Development LP
+# Copyright 2020-2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,8 @@ BuildRequires: python3 >= 3.6.8
 Requires: python3 >= 3.6.5
 Requires: python3-base
 Requires: python3-requests
+Requires: python3-requests-retry-session >= 0.1.4
+Requires: python3-liveness >= 1.4.2
 
 %description
 Provides a library that contains bootstrapping of an environment into
@@ -39,34 +41,14 @@ a trusted relationship with the configuration framework service (CFS).
 
 %prep
 %setup -q
-# List any Python packages directories that are already here
-find %{buildroot}/usr/lib/python3*/site-packages \
-     %{buildroot}/usr/local/lib/python3*/site-packages \
-     -type d -print 2>/dev/null > DIR_BEFORE || true
-cat DIR_BEFORE
-
-%build
-python3 setup.py build
 
 %install
-python3 setup.py install --root %{buildroot} --record=PY3_INSTALLED_FILES
-# Find all Python package directories that now exist on the system
-cat PY3_INSTALLED_FILES | xargs dirname | sort -u > DIR_AFTER
+python3 --version
+python3 -m pip install --upgrade pip --user
+python3 -m pip install ./dist/*.whl --root %{buildroot} --disable-pip-version-check --no-deps
+find %{buildroot} -type f -print | tee -a PY3_INSTALLED_FILES
+sed -i 's#^%{buildroot}##' PY3_INSTALLED_FILES
 cat PY3_INSTALLED_FILES
-cat DIR_AFTER
-
-%clean
-# Remove any new directories that were added during this install
-sed 's#^#%{buildroot}#' DIR_AFTER | while read X ; do
-    [ -d "$X" ] || continue
-    grep -q "^$X$" DIR_BEFORE && continue
-    rm -rf "$X"
-done
-# Remove any files that were missed in the above process
-sed 's#^#%{buildroot}#' PY3_INSTALLED_FILES | while read X ; do
-    [ -f "$X" ] || continue
-    rm -f "$X"
-done
 
 %files -f PY3_INSTALLED_FILES
 %defattr(-,root,root)
