@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2019-2023 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2019-2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -43,9 +43,9 @@ ifneq ($(wildcard ${HOME}/.netrc),)
         DOCKER_ARGS ?= --secret id=netrc,src=${HOME}/.netrc
 endif
 
-all : runbuildprep lint prepare image chart rpm pymod
+all : runbuildprep lint pymod image chart rpm
 chart: chart_setup chart_package chart_test
-rpm: rpm_package_source rpm_build_source rpm_build
+rpm: prepare rpm_package_source rpm_build_source rpm_build
 
 runbuildprep:
 		./cms_meta_tools/scripts/runBuildPrep.sh
@@ -54,7 +54,6 @@ lint:
 		./cms_meta_tools/scripts/runLint.sh
 
 prepare:
-		pip3 install --user --upgrade pip setuptools wheel
 		rm -rf $(BUILD_DIR)
 		mkdir -p $(BUILD_DIR)/SPECS $(BUILD_DIR)/SOURCES
 		cp $(SPEC_FILE) $(BUILD_DIR)/SPECS/
@@ -75,7 +74,16 @@ chart_test:
 		docker run --rm -v ${PWD}/${CHART_PATH}:/apps ${HELM_UNITTEST_IMAGE} -3 ${NAME}
 
 rpm_package_source:
-		tar --transform 'flags=r;s,^,/$(SOURCE_NAME)/,' --exclude .git --exclude ./cms_meta_tools --exclude ./dist -cvjf $(SOURCE_PATH) .
+		tar --transform 'flags=r;s,^,/$(SOURCE_NAME)/,' \
+			--exclude .git \
+			--exclude .github \
+			--exclude cfs_ssh_trust.egg-info \
+			--exclude cms_meta_tools \
+			--exclude ./dist/rpmbuild \
+			--exclude ./kubernetes \
+			--exclude ./src \
+			--exclude ./build \
+			-cvjf $(SOURCE_PATH) .
 
 rpm_build_source:
 		BUILD_METADATA=$(BUILD_METADATA) rpmbuild -ts $(SOURCE_PATH) --define "_topdir $(BUILD_DIR)"
@@ -84,4 +92,7 @@ rpm_build:
 		BUILD_METADATA=$(BUILD_METADATA) rpmbuild -ba $(SPEC_FILE) --define "_topdir $(BUILD_DIR)" --define "python3_sitelib $(PYTHON_SITE_PACKAGES_PATH)"
 
 pymod:
+		python3 --version
+		python3 -m pip install --upgrade pip --user -c constraints.txt
+		python3 -m pip install --user --upgrade build setuptools wheel -c constraints.txt
 		python3 setup.py sdist bdist_wheel
