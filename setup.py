@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2020-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2020-2022, 2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,16 +22,25 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 # setup.py for cfsssh-setup
+from os import path
 import setuptools
 
-with open("README.md", "r") as fh:
+here = path.abspath(path.dirname(__file__))
+
+with open(path.join(here, "README.md"), "r") as fh:
     long_description = fh.read().strip()
 
-with open("gitInfo.txt", "r") as fh:
+with open(path.join(here, "gitInfo.txt"), "r") as fh:
     long_description += '\n' + fh.read()
 
-with open(".version", "r") as fh:
+with open(path.join(here, ".version"), "r") as fh:
     version_str = fh.read()
+
+with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
+    install_requires = []
+    for line in f.readlines():
+        if line and line[0].isalpha():
+            install_requires.append(line.strip())
 
 package_dir = {'cfsssh':                        'src/cfsssh',
                'cfsssh.cloudinit':              'src/cfsssh/cloudinit',
@@ -51,6 +60,7 @@ setuptools.setup(
     url="https://github.com/Cray-HPE/cfs-trust",
     package_dir = package_dir,
     packages = list(package_dir.keys()),
+    install_requires=install_requires,
     keywords="vault ssh cfs kubernetes trust certificates",
     classifiers=[
         "Programming Language :: Python :: 3.6",

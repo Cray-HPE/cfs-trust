@@ -21,24 +21,20 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-FROM artifactory.algol60.net/docker.io/alpine:3.15 as service
+FROM artifactory.algol60.net/docker.io/alpine:3.15 AS service
 WORKDIR /app
-RUN mkdir /app/src
-COPY /src/ /app/src
-COPY /src/cfsssh/cloudinit/ /app/src/cloudinit
-COPY setup.py README.md .version gitInfo.txt /app/
-ADD constraints.txt requirements.txt /app/
+COPY constraints.txt requirements.txt dist/*.whl /app/
 RUN --mount=type=secret,id=netrc,target=/root/.netrc \
-    apk add --upgrade --no-cache apk-tools &&  \
+    apk add --upgrade --no-cache apk-tools && \
     apk update && \
     apk add --no-cache linux-headers gcc g++ python3-dev py3-pip musl-dev libffi-dev openssl-dev git jq curl openssh-client && \
     apk -U upgrade --no-cache && \
-    python3 -m pip install --upgrade pip && \
-    pip3 install --no-cache-dir -U pip && \
-    pip3 install --no-cache-dir -r requirements.txt && \
-    pip3 list --format freeze
-RUN pip3 install --no-cache-dir . && \
-    pip3 list --format freeze && \
+    python3 -m pip install --no-cache-dir --upgrade --user pip -c constraints.txt && \
+    python3 -m pip list --format freeze && \
+    python3 -m pip install --no-cache-dir -r requirements.txt && \
+    python3 -m pip list --format freeze && \
+    python3 -m pip install --no-cache-dir -c constraints.txt /app/*.whl && \
+    python3 -m pip list --format freeze && \
     rm -rf /app/*
 USER nobody:nobody
 ENTRYPOINT [ "python3", "-m", "cfsssh.setup.service" ]
