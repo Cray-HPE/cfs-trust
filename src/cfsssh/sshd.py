@@ -59,7 +59,7 @@ def get_sshd_pids():
     """
     sshd_pids = []
     for pid in [pid for pid in os.listdir('/proc') if pid.isdigit()]:
-        
+
         try:
             with open('/proc/%s/cmdline' %(pid), 'r') as cmdfile:
                 if SSHD_PATH in cmdfile.read():

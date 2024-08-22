@@ -36,30 +36,30 @@ VAULT_VERSION = 'v1'
 
 """
 # kubectl run test --namespace services --rm -i --tty --image alpine:3.7
- 
-/ # apk add jq curl openssh-client 
- 
+
+/ # apk add jq curl openssh-client
+
 # Get auth token
- 
+
 / # KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 / # VAULT_TOKEN=$(curl -s --request POST --data '{"jwt": "'"$KUBE_TOKEN"'", "role": "cfsssh-user-certs-compute"}' http://cray-vault.vault:8200/v1/auth/kubernetes/login | jq -r '.auth.client_token')
- 
+
 # Create exportable key
 / # curl --header "X-Vault-Token: $VAULT_TOKEN" --request POST --data '{"type": "ecdsa-p384", "exportable": true}' http://cray-vault.vault:8200/v1/transit/keys/ecdsa-p384-compute-cfsssh-key
 / # curl --header "X-Vault-Token: $VAULT_TOKEN"  --request LIST http://cray-vault.vault:8200/v1/transit/keys | jq
- 
+
 # Export private key
 / # curl --header "X-Vault-Token: $VAULT_TOKEN"  http://cray-vault.vault:8200/v1/transit/export/signing-key/ecdsa-p384-compute-cfsssh-key | jq '.data.keys["1"]' | sed -e 's/"//g' -e 's/\\n/\n/g' > id_ecdsa
- 
+
 # Extract the public key from the private and covert to SSH format
 / # chmod 600 id_ecdsa
 / # cfsssh-keygen -y -f id_ecdsa > id_ecdsa.pub
- 
+
 # Sign the public key/create the cert
 / # curl --header "X-Vault-Token: $VAULT_TOKEN" --request POST --data '{"public_key" : "'"$(tr -d '\n' < id_ecdsa.pub)"'", "ttl": "87600h", "valid_principals": "root", "key_id": "compute node root"}'  http://cray-vault.vault:8200/v1/ssh_user_certs_compute/sign/compute| jq '.data.signed_key' | sed -e 's/"//g' -e 's/\\n//g' > id_ecdsa-cert.pub
- 
-# Show the resulting certificate 
-/ # cfsssh-keygen -Lf id_ecdsa-cert.pub 
+
+# Show the resulting certificate
+/ # cfsssh-keygen -Lf id_ecdsa-cert.pub
 """
 
 class VaultClient(object):
@@ -279,7 +279,7 @@ class VaultSshKey(object):
         Saves a private copy of the cfsssh key locally to <destination>.
 
         Returns <destination>, which is where the key was written to.
-        
+
         WARNING: If you write this file to disk, you are responsible for cleaning it up and ensuring
         that it is cleaned up.
         """
@@ -333,7 +333,7 @@ class SshPublicKeyCert(object):
     API Documentation:
         https://www.vaultproject.io/api/secret/cfsssh#sign-cfsssh-key
     """
-    def __init__(self, 
+    def __init__(self,
                  vault_ssh_key,
                  signing_key,
                  role_name,
