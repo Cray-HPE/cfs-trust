@@ -31,12 +31,29 @@ Created on Nov 2, 2020
 
 @author: jsl
 '''
-from requests_retry_session import requests_retry_session as base_requests_retry_session
-from functools import partial
 
+import logging
+
+from requests_retry_session import requests_retry_session as base_requests_retry_session
+
+LOGGER = logging.getLogger(__name__)
 PROTOCOL = 'http'
 
-requests_retry_session = partial(base_requests_retry_session,
-                                 protocol=PROTOCOL,
-                                 retries=128,
-                                 backoff_factor=0.01)
+def requests_retry_session(retries=128, backoff_factor=0.01, **kwargs):
+    return base_requests_retry_session(protocol=PROTOCOL,
+                                       retries=retries,
+                                       backoff_factor=backoff_factor,
+                                       **kwargs)
+
+
+if __name__ == '__main__':
+    import sys
+    lh = logging.StreamHandler(sys.stdout)
+    lh.setLevel(logging.DEBUG)
+    LOGGER.addHandler(lh)
+    LOGGER.setLevel(logging.DEBUG)
+    LOGGER.info("Running")
+    retry_session = requests_retry_session()
+    LOGGER.info(retry_session.get('https://httpstat.us/200').status_code)
+    retry_session = requests_retry_session(retries=5)
+    LOGGER.info(retry_session.get('https://httpstat.us/503').status_code)
