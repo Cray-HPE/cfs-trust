@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.3] - 2024-08-22
+### Fixed
+- Restore code accidentally removed from `connection.py` in v1.7.2
+
 ## [1.7.2] - 2024-08-16
 ### Changed
 - Print list of installed Python modules after pip installs in Dockerfile, for logging purposes.
