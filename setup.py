@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2020-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2020-2022, 2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@ with open(".version", "r") as fh:
 
 package_dir = {'cfsssh':                        'src/cfsssh',
                'cfsssh.cloudinit':              'src/cfsssh/cloudinit',
+               'cfsssh.requests_retry_session': 'src/cfsssh/requests_retry_session',
                'cfsssh.setup':                  'src/cfsssh/setup',
                'cfsssh.setup.service':          'src/cfsssh/setup/service',
                'cfsssh.setup.service.liveness': 'src/cfsssh/setup/service/liveness',
