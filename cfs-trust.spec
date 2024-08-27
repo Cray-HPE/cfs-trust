@@ -24,7 +24,7 @@ License: MIT
 Summary: A CFS library that can be used to bootstrap an environment into the CFS trust relationship
 Group: System/Management
 Version: %(cat .version)
-Release: %(echo ${BUILD_METADATA})
+Release: %(cat .rpm_release)
 Source: %{name}-%{version}.tar.bz2
 BuildArch: noarch
 Vendor: Cray Inc.
