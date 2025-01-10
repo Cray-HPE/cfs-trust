@@ -1,4 +1,4 @@
-# Copyright 2020-2024 Hewlett Packard Enterprise Development LP
+# Copyright 2020-2025 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@ BuildRequires: python3 >= 3.6.8
 Requires: python3 >= 3.6.5
 Requires: python3-base
 Requires: python3-requests
-Requires: python3-requests-retry-session >= 0.1.4
+Requires: python3-requests-retry-session >= 0.2.3, python3-requests-retry-session < 0.3.0
 Requires: python3-liveness >= 1.4.2
 
 %description
