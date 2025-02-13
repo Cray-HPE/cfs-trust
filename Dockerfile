@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2019-2022, 2024 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2019-2022, 2024-2025 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-FROM artifactory.algol60.net/docker.io/alpine:3.15 AS service
+FROM artifactory.algol60.net/docker.io/alpine:3.18 AS service
 WORKDIR /app
 COPY constraints.txt requirements.txt dist/*.whl /app/
 RUN --mount=type=secret,id=netrc,target=/root/.netrc \
