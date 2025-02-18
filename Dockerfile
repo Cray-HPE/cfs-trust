@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2019-2022, 2024 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2019-2022, 2024-2025 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,20 +21,25 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-FROM artifactory.algol60.net/docker.io/alpine:3.15 AS service
+FROM artifactory.algol60.net/docker.io/alpine:3.21 AS service
 WORKDIR /app
+ENV VIRTUAL_ENV=/app/venv
 COPY constraints.txt requirements.txt dist/*.whl /app/
-RUN --mount=type=secret,id=netrc,target=/root/.netrc \
-    apk add --upgrade --no-cache apk-tools && \
+RUN apk add --upgrade --no-cache apk-tools && \
     apk update && \
-    apk add --no-cache linux-headers gcc g++ python3-dev py3-pip musl-dev libffi-dev openssl-dev git jq curl openssh-client && \
+    apk add --no-cache linux-headers gcc g++ python3 python3-dev py3-pip musl-dev libffi-dev openssl-dev git jq curl openssh-client && \
     apk -U upgrade --no-cache && \
-    python3 -m pip install --no-cache-dir --upgrade --user pip -c constraints.txt && \
+    python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN --mount=type=secret,id=netrc,target=/root/.netrc \
+    python3 -m pip install --no-cache-dir --upgrade pip -c constraints.txt && \
     python3 -m pip list --format freeze && \
-    python3 -m pip install --no-cache-dir -r requirements.txt && \
+    python3 -m pip install --no-cache-dir --disable-pip-version-check --upgrade wheel -c constraints.txt && \
     python3 -m pip list --format freeze && \
-    python3 -m pip install --no-cache-dir -c constraints.txt /app/*.whl && \
+    python3 -m pip install --no-cache-dir --disable-pip-version-check -r requirements.txt && \
     python3 -m pip list --format freeze && \
-    rm -rf /app/*
+    python3 -m pip install --no-cache-dir --disable-pip-version-check -c constraints.txt /app/*.whl && \
+    python3 -m pip list --format freeze && \
+    rm /app/*.whl /app/constraints.txt /app/requirements.txt
 USER nobody:nobody
 ENTRYPOINT [ "python3", "-m", "cfsssh.setup.service" ]
