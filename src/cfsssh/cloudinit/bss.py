@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2020-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2020-2022, 2025 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -43,8 +43,11 @@ if in_cluster():
 else:
     PROTOCOL = 'http'
     DNS_NAME = 'api-gw-service-nmn.local'
+    # CASMCMS-9292: For getting the metadata from a node, we use this IP address,
+    # to prevent needless BSS re-caching
+    API_GW_IP = '10.92.100.81'
     PARAMETERS_ENDPOINT = '%s://%s/%s' % (PROTOCOL, DNS_NAME, BOOT_PARAM_SUFFIX)
-    METADATA_ENDPOINT = '%s://%s:8888/%s' %(PROTOCOL, DNS_NAME, METADATA_SUFFIX)
+    METADATA_ENDPOINT = '%s://%s:8888/%s' %(PROTOCOL, API_GW_IP, METADATA_SUFFIX)
 
 class BSSException(Exception):
     """
