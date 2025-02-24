@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2020-2022, 2024 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2020-2022, 2024-2025 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,7 @@ Created on Nov 2, 2020
 @author: jsl
 '''
 
+from functools import partial
 import logging
 
 from cfsssh.requests_retry_session import requests_retry_session as base_requests_retry_session
@@ -39,12 +40,7 @@ from cfsssh.requests_retry_session import requests_retry_session as base_request
 LOGGER = logging.getLogger(__name__)
 PROTOCOL = 'http'
 
-def requests_retry_session(retries=128, backoff_factor=0.01, **kwargs):
-    return base_requests_retry_session(protocol=PROTOCOL,
-                                       retries=retries,
-                                       backoff_factor=backoff_factor,
-                                       **kwargs)
-
+requests_retry_session = partial(base_requests_retry_session, protocol=PROTOCOL)
 
 if __name__ == '__main__':
     import sys
