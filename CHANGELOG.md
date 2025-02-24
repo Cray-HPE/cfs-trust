@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- CASMCMS-9292: When retrieving BSS global metadata as a cfs-trust client (on a node), use
+  `10.92.100.81` instead of the API gateway hostname, to prevent needless BSS re-caching.
 
 ## [1.8.0] - 2025-02-13
 ### Dependencies
