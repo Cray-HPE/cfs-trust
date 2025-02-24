@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Dependencies
+- Require `requests-retry-session` 0.2.4, which has an important fix
+
 ## [1.7.5] - 2025-01-10
 ### Dependencies
 - Change `requests_retry_session` version to avoid errors.

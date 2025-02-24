@@ -32,7 +32,7 @@ BuildRequires: python3 >= 3.6.8
 Requires: python3 >= 3.6.5
 Requires: python3-base
 Requires: python3-requests
-Requires: python3-requests-retry-session >= 0.2.3, python3-requests-retry-session < 0.3.0
+Requires: python3-requests-retry-session >= 0.2.4, python3-requests-retry-session < 0.3.0
 Requires: python3-liveness >= 1.4.2
 
 %description
