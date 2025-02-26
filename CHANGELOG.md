@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- CASMCMS-9292: When retrieving BSS global metadata, correctly pass in the key parameter
+  (requires BSS containing fix for CASMHMS-6386).
 
 ### Dependencies
 - Require `requests-retry-session` 0.2.4, which has an important fix
