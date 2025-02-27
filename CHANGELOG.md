@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2025-02-27
+### Changed
+- CASMCMS-9293: Use default values for `retries` and `backoff_factor`, instead of the current aggressive overrides
+- CASMCMS-9292: When retrieving BSS global metadata, correctly pass in the key parameter
+  (requires BSS containing fix for CASMHMS-6386).
+
+### Dependencies
+- Require `requests-retry-session` 0.2.4, which has an important fix
+
 ## [1.8.0] - 2025-02-13
 ### Dependencies
 - CASMCMS-9282: Bump Alpine version from 3.15 to 3.21, because 3.15 no longer receives security patches;
