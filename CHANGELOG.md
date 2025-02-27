@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.10] - 2025-02-26
+### Changed
+- CASMCMS-9292: When retrieving BSS global metadata, correctly pass in the key parameter.
+- CASMCMS-9293: Use default values for `retries` and `backoff_factor`, instead of the current aggressive overrides
+
 ## [1.6.9] - 2024-08-22
 ### Changed
 - Print list of installed Python modules after pip installs in Dockerfile, for logging purposes.

@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2020-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2020-2022, 2025 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,10 @@ Created on Nov 17, 2020
 '''
 
 import json
+from typing import Optional
+
+import requests
+
 from cfsssh.connection import requests_retry_session
 from cfsssh.context import in_cluster
 
@@ -52,17 +56,17 @@ class BSSException(Exception):
     This allows us a clean way to retry these interactions.
     """
 
-def get_global_metadata_key(key, session=None):
+def get_global_metadata_key(key: str, session: Optional[requests.Session]=None) -> str:
     session = session or requests_retry_session()
-    get_payload = {'key': 'Global.%s' %(key)}
-    response = session.get(METADATA_ENDPOINT, json=get_payload)
+    get_params = {'key': 'Global'}
+    response = session.get(METADATA_ENDPOINT, params=get_params)
     try:
         response.raise_for_status()
     except Exception as exc:
         raise BSSException(exc) from exc
     obj = json.loads(response.text)
     # This will raise a key error if it isn't defined!
-    return obj['Global'][key]
+    return obj[key]
 
 def patch_global_metadata_key(key, value, session=None):
     session = session or requests_retry_session()
