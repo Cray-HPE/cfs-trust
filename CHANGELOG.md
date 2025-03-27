@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2025-03-27
+### Fixed
+- CASMCMS-9333: `get_global_metadata_key` must raise `KeyError` when `Global.cfs_public_key` is missing
+
 ## [1.9.0] - 2025-02-27
 ### Changed
 - CASMCMS-9293: Use default values for `retries` and `backoff_factor`, instead of the current aggressive overrides

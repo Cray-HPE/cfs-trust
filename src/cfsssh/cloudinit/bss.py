@@ -60,10 +60,14 @@ def get_global_metadata_key(key: str, session: Optional[requests.Session]=None) 
     session = session or requests_retry_session()
     get_params = {'key': f'Global.{key}'}
     response = session.get(METADATA_ENDPOINT, params=get_params)
-    try:    
-        # The request will return with a 404 if the key isn't defined
+    try:
         response.raise_for_status()
     except Exception as exc:
+        # The request will return with a 404 if the key isn't defined
+        if response.status_code == 404:
+            # CASMCMS-9333: We need to raise a KeyError if this Key is not found, so
+            # that the cfs-trust service knows to patch it in
+            raise KeyError from exc
         raise BSSException(exc) from exc
     return json.loads(response.text)
 
