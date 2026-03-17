@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-03-17
+### Changed
+- Include process and thread IDs in log messages
+
 ## [1.9.2] - 2025-07-02
 ### Dependencies
 - Bump `kubernetes` and `requests-retry-session` versions (and `oauthlib`, due to new `kubernetes` version)
